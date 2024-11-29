@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { EspecialidadService } from './services/especialidad.service';
+import { SedeService } from './services/sede.service';
 import { MessageService } from 'primeng/api';
-import { Especialidad } from './models/especialidad';
+import { Sede } from './models/sede';
 import { ConfirmationService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { TableModule } from 'primeng/table';
@@ -16,22 +16,22 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { NavegarComponent } from '../component/navegar/navegar.component';
 
 @Component({
-  selector: 'app-especialidad',
+  selector: 'app-sede',
   standalone: true,
   imports: [TableModule, ButtonModule, CommonModule, FormsModule, InputTextModule, 
     DialogModule, ToastModule, ConfirmDialogModule, ProgressSpinnerModule, 
     SkeletonModule, NavegarComponent],
   providers: [MessageService, ConfirmationService],
-  templateUrl: './especialidad.component.html',
-  styleUrl: './especialidad.component.css'
+  templateUrl: './sede.component.html',
+  styleUrl: './sede.component.css'
 })
-export class EspecialidadComponent {
+export class SedeComponent {
   totalRecords: number = 0;
   cargando: boolean = false;
-  especialidades: Especialidad[] = [];
+  sedes: Sede[] = [];
   titulo: string = '';
   opc: string = '';
-  especialidad = new Especialidad();
+  sede = new Sede();
   op = 0;
   visible: boolean = false;
   nombreTemp: string = '';
@@ -39,28 +39,28 @@ export class EspecialidadComponent {
   filtroNombre: string = '';
 
   constructor(
-    private especialidadService: EspecialidadService,
+    private sedeService: SedeService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
-    this.listarEspecialidades();
+    this.listarSedes();
   }
 
-  filtrarEspecialidades() {
+  filtrarSedes() {
     if (this.filtroNombre) {
-      return this.especialidades.filter(especialidad => 
-        especialidad.nombre.toLowerCase().includes(this.filtroNombre.toLowerCase())
+      return this.sedes.filter(sede => 
+        sede.nombre.toLowerCase().includes(this.filtroNombre.toLowerCase())
       );
     }
-    return this.especialidades;
+    return this.sedes;
   }
 
-  listarEspecialidades() {
-    this.especialidadService.getEspecialidades().subscribe({
+  listarSedes() {
+    this.sedeService.getSedes().subscribe({
       next: (data) => {
-        this.especialidades = data;
+        this.sedes = data;
         this.totalRecords = data.length;
         this.cargando = false;
       },
@@ -69,19 +69,19 @@ export class EspecialidadComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo cargar la lista de especialidades',
+          detail: 'No se pudo cargar la lista de sedes',
         });
       },
     });
   }
 
   actualizarLista() {
-    this.listarEspecialidades();
-    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Lista de especialidades actualizada' });
+    this.listarSedes();
+    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Lista de sedes actualizada' });
   }
 
   showDialogCreate() {
-    this.titulo = 'Crear Especialidad';
+    this.titulo = 'Crear Sede';
     this.opc = 'Agregar';
     this.op = 0;
     this.nombreTemp = '';
@@ -89,87 +89,87 @@ export class EspecialidadComponent {
   }
 
   showDialogEdit(id: number) {
-    this.titulo = 'Editar Especialidad';
+    this.titulo = 'Editar Sede';
     this.opc = 'Editar';
-    this.especialidadService.getEspecialidadById(id).subscribe((data) => {
-      this.especialidad = data;
-      this.nombreTemp = this.especialidad.nombre;
+    this.sedeService.getSedeById(id).subscribe((data) => {
+      this.sede = data;
+      this.nombreTemp = this.sede.nombre;
       this.op = 1;
       this.visible = true;
     });
   }
 
-  deleteEspecialidad(id: number) {
+  deleteSede(id: number) {
     this.isDeleteInProgress = true;
-    this.especialidadService.deleteEspecialidad(id).subscribe({
+    this.sedeService.deleteSede(id).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Correcto',
-          detail: 'Especialidad eliminada',
+          detail: 'Sede eliminada',
         });
         this.isDeleteInProgress = false;
-        this.listarEspecialidades();
+        this.listarSedes();
       },
       error: () => {
         this.isDeleteInProgress = false;
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo eliminar la especialidad',
+          detail: 'No se pudo eliminar la sede',
         });
       },
     });
   }
 
-  addEspecialidad(): void {
+  addSede(): void {
     if (!this.nombreTemp || this.nombreTemp.trim() === '') {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'El nombre de la especialidad no puede estar vacío',
+        detail: 'El nombre de la sede no puede estar vacío',
       });
       return;
     }
 
-    this.especialidad.nombre = this.nombreTemp;
-    this.especialidadService.createEspecialidad(this.especialidad).subscribe({
+    this.sede.nombre = this.nombreTemp;
+    this.sedeService.createSede(this.sede).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Correcto',
-          detail: 'Especialidad registrada',
+          detail: 'Sede registrada',
         });
-        this.listarEspecialidades();
+        this.listarSedes();
         this.op = 0;
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo agregar la especialidad',
+          detail: 'No se pudo agregar la sede',
         });
       },
     });
     this.visible = false;
   }
 
-  editEspecialidad() {
-    this.especialidadService.updateEspecialidad(this.especialidad, this.especialidad.id).subscribe({
+  editSede() {
+    this.sedeService.updateSede(this.sede, this.sede.id).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Correcto',
-          detail: 'Especialidad editada',
+          detail: 'Sede editada',
         });
-        this.listarEspecialidades();
+        this.listarSedes();
         this.op = 0;
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo editar la especialidad',
+          detail: 'No se pudo editar la sede',
         });
       },
     });
@@ -178,11 +178,11 @@ export class EspecialidadComponent {
 
   opcion(): void {
     if (this.op == 0) {
-      this.addEspecialidad();
+      this.addSede();
       this.limpiar();
     } else if (this.op == 1) {
-      this.especialidad.nombre = this.nombreTemp;
-      this.editEspecialidad();
+      this.sede.nombre = this.nombreTemp;
+      this.editSede();
       this.limpiar();
     } else {
       this.limpiar();
@@ -193,7 +193,7 @@ export class EspecialidadComponent {
     this.titulo = '';
     this.opc = '';
     this.op = 0;
-    this.especialidad.id = 0;
-    this.especialidad.nombre = '';
+    this.sede.id = 0;
+    this.sede.nombre = '';
   }
 }

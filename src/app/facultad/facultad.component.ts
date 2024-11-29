@@ -1,76 +1,73 @@
 import { Component } from '@angular/core';
-import { DoctorService } from './services/doctor.service';
-import { Doctor } from './models/doctor';
+import { FacultadService } from './services/facultad.service';
+import { Facultad } from './models/facultad';
 import { TableModule } from 'primeng/table';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { Especialidad } from '../especialidad/models/especialidad';
+import { Sede } from '../sede/models/sede';
 import { ToastModule } from 'primeng/toast';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { EspecialidadService } from '../especialidad/services/especialidad.service';
+import { SedeService } from '../sede/services/sede.service';
 import { DropdownModule } from 'primeng/dropdown';
 import { CommonModule } from '@angular/common';
 import { NavegarComponent } from '../component/navegar/navegar.component';
-
-
 @Component({
-  selector: 'app-doctor',
+  selector: 'app-facultad',
   standalone: true,
   imports: [TableModule, ToastModule, FormsModule, DialogModule, ButtonModule, InputTextModule, ConfirmDialogModule, DropdownModule, CommonModule, NavegarComponent],
   providers: [MessageService, ConfirmationService],
-  templateUrl: './doctor.component.html',
-  styleUrl: './doctor.component.css'
+  templateUrl: './facultad.component.html',
+  styleUrl: './facultad.component.css'
 })
-export class DoctorComponent {
+export class FacultadComponent {
   totalRecords: number = 0;
   cargando: boolean = false;
-  doctores: Doctor[] = [];
+  facultades: Facultad[] = [];
   titulo: string = '';
   opc: string = '';
-  doctor = new Doctor(0, '', '', new Especialidad());
+  facultad = new Facultad(0, '', new Sede());
   op = 0;
   visible: boolean = false;
   nombreTemp: string = '';
-  apellidosTemp: string = '';
   isDeleteInProgress: boolean = false;
   filtroNombre: string = '';
-  especialidadOptions: Especialidad[] = [];
-  especialidadOriginal: string = '';
+  sedeOptions: Sede[] = [];
+  sedeOriginal: string = '';
 
   constructor(
-    private doctorService: DoctorService,
-    private especialidadService: EspecialidadService,
+    private facultadService: FacultadService,
+    private sedeService: SedeService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) { }
 
   ngOnInit(): void {
     this.cargando = true;
-    this.listarDoctores();
+    this.listarFacultades();
   }
 
-  cargarEspecialidades() {
-    this.especialidadService.getEspecialidades().subscribe({
+  cargarSedes() {
+    this.sedeService.getSedes().subscribe({
       next: (data) => {
-        this.especialidadOptions = data;
+        this.sedeOptions = data;
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudieron cargar las especialidades'
+          detail: 'No se pudieron cargar las sedes'
         });
       }
     });
   }
 
-  listarDoctores() {
-    this.doctorService.getDoctores().subscribe({
+  listarFacultades() {
+    this.facultadService.getFacultades().subscribe({
       next: (data) => {
-        this.doctores = data;
+        this.facultades = data;
         this.totalRecords = data.length;
         this.cargando = false;
       },
@@ -79,79 +76,75 @@ export class DoctorComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo cargar la lista de doctores',
+          detail: 'No se pudo cargar la lista de facultades',
         });
       },
     });
   }
 
-  filtrarDoctores() {
+  filtrarFacultades() {
     if (this.filtroNombre) {
-      return this.doctores.filter(doctor =>
-        doctor.nombres.toLowerCase().includes(this.filtroNombre.toLowerCase()) ||
-        doctor.apellidos.toLowerCase().includes(this.filtroNombre.toLowerCase())
+      return this.facultades.filter(facultad =>
+        facultad.nombre.toLowerCase().includes(this.filtroNombre.toLowerCase())
       );
     }
-    return this.doctores;
+    return this.facultades;
   }
 
   actualizarLista() {
-    this.listarDoctores();
-    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Lista de doctores actualizada' });
+    this.listarFacultades();
+    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Lista de facultades actualizada' });
   }
 
   showDialogCreate() {
-    this.cargarEspecialidades();
-    this.titulo = 'Crear Doctor';
+    this.cargarSedes();
+    this.titulo = 'Crear Facultad';
     this.opc = 'Agregar';
     this.op = 0;
     this.nombreTemp = '';
-    this.apellidosTemp = '';
     this.visible = true;
-    this.doctor = new Doctor(0, '', '', new Especialidad());
+    this.facultad = new Facultad(0, '', new Sede());
   }
 
   showDialogEdit(id: number) {
-    this.cargarEspecialidades();
-    this.titulo = 'Editar Doctor';
+    this.cargarSedes();
+    this.titulo = 'Editar Facultad';
     this.opc = 'Editar';
-    this.doctorService.getDoctorById(id).subscribe((data) => {
-      this.doctor = data;
-      this.nombreTemp = this.doctor.nombres;
-      this.apellidosTemp = this.doctor.apellidos;
-      this.especialidadOriginal = this.doctor.especialidad.nombre;
+    this.facultadService.getFacultadById(id).subscribe((data) => {
+      this.facultad = data;
+      this.nombreTemp = this.facultad.nombre;
+      this.sedeOriginal = this.facultad.sede.nombre;
       this.op = 1;
       this.visible = true;
     });
   }
 
-  deleteDoctor(id: number) {
+  deleteFacultad(id: number) {
 
-        this.doctorService.deleteDoctor(id).subscribe({
+        this.facultadService.deleteFacultad(id).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
               summary: 'Correcto',
-              detail: 'Doctor eliminado',
+              detail: 'Facultad eliminado',
             });
             this.isDeleteInProgress = false;
-            this.listarDoctores();
+            this.listarFacultades();
           },
           error: () => {
             this.isDeleteInProgress = false;
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'No se pudo eliminar el doctor',
+              detail: 'No se pudo eliminar el facultad',
             });
           },
         });
   
   }
 
-  addDoctor(): void {
-    if (!this.nombreTemp || this.nombreTemp.trim() === '' || 
-        !this.apellidosTemp || this.apellidosTemp.trim() === '') {
+  addFacultad(): void {
+    if (!this.nombreTemp || this.nombreTemp.trim() === '') {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -160,17 +153,16 @@ export class DoctorComponent {
       return;
     }
 
-    this.doctor.nombres = this.nombreTemp;
-    this.doctor.apellidos = this.apellidosTemp;
+    this.facultad.nombre = this.nombreTemp;
     
-    this.doctorService.createDoctor(this.doctor).subscribe({
+    this.facultadService.createFacultad(this.facultad).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Correcto',
-          detail: 'Doctor registrado',
+          detail: 'Facultad registrado',
         });
-        this.listarDoctores();
+        this.listarFacultades();
         this.op = 0;
         this.visible = false;
       },
@@ -178,15 +170,14 @@ export class DoctorComponent {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo agregar el doctor',
+          detail: 'No se pudo agregar el facultad',
         });
       },
     });
   }
 
-  editDoctor() {
-    if (!this.nombreTemp || this.nombreTemp.trim() === '' || 
-        !this.apellidosTemp || this.apellidosTemp.trim() === '') {
+  editFacultad() {
+    if (!this.nombreTemp || this.nombreTemp.trim() === '') {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -195,45 +186,42 @@ export class DoctorComponent {
       return;
     }
 
-    if (!this.doctor.especialidad || !this.doctor.especialidad.id) {
+    if (!this.facultad.sede || !this.facultad.sede.id) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Debe seleccionar una especialidad',
+        detail: 'Debe seleccionar una sede',
       });
       return;
     }
 
-    this.doctor.nombres = this.nombreTemp;
-    this.doctor.apellidos = this.apellidosTemp;
-
-    const doctorToUpdate = {
-      id: this.doctor.id,
-      nombres: this.doctor.nombres,
-      apellidos: this.doctor.apellidos,
-      especialidad: {
-        id: this.doctor.especialidad.id,
-        nombre: this.doctor.especialidad.nombre
+    this.facultad.nombre = this.nombreTemp;
+    const facultadToUpdate = {
+      id: this.facultad.id,
+      nombre: this.facultad.nombre,
+      sede: {
+        id: this.facultad.sede.id,
+        nombre: this.facultad.sede.nombre
       }
     };
 
-    this.doctorService.updateDoctor(doctorToUpdate, this.doctor.id).subscribe({
+    this.facultadService.updateFacultad(facultadToUpdate, this.facultad.id).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Correcto',
-          detail: 'Doctor actualizado',
+          detail: 'Facultad actualizado',
         });
-        this.listarDoctores();
+        this.listarFacultades();
         this.op = 0;
         this.visible = false;
       },
       error: (error) => {
-        console.error('Error al actualizar doctor:', error);
+        console.error('Error al actualizar facultad:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'No se pudo actualizar el doctor',
+          detail: 'No se pudo actualizar el facultad',
         });
       },
     });
@@ -241,10 +229,10 @@ export class DoctorComponent {
 
   opcion(): void {
     if (this.op == 0) {
-      this.addDoctor();
+      this.addFacultad();
       this.limpiar();
     } else if (this.op == 1) {
-      this.editDoctor();
+      this.editFacultad();
       this.limpiar();
     } else {
       this.limpiar();
@@ -255,9 +243,8 @@ export class DoctorComponent {
     this.titulo = '';
     this.opc = '';
     this.op = 0;
-    this.doctor = new Doctor(0, '', '', new Especialidad());
+    this.facultad = new Facultad(0, '',new Sede());
     this.nombreTemp = '';
-    this.apellidosTemp = '';
   }
 
 }

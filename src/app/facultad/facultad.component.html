@@ -2,9 +2,11 @@
   <div class="w-full max-w-4xl">
     <div class="bg-white rounded-lg shadow-md">
       <div class="mb-4 p-4 border-b border-gray-200">
-        <app-navegar [ubicacionActual]="'Menú Especialidades'" class="text-lg"></app-navegar>
+        <app-navegar [ubicacionActual]="'Menú Facultad'" class="text-lg"></app-navegar>
       </div>
     </div>
+
+
     <div class="overflow-x-auto">
       <div class="flex flex-col mb-4">
         <div class="flex justify-end">
@@ -15,55 +17,55 @@
         </div>
 
         <div class="flex justify-end mt-2">
-          <button pButton pRipple type="button" icon="pi pi-plus" label="Nueva Especialidad"
+          <button pButton pRipple type="button" icon="pi pi-plus" label="Nueva Facultad"
             (click)="showDialogCreate()"
             class="p-button-outlined p-button-info h-12 sm:w-auto text-sm sm:text-base">
           </button>
         </div>
       </div>
 
-      <div class="flex justify-center items-center my-4">
-        <p-progressSpinner styleClass="w-8 h-8"></p-progressSpinner>
-      </div>
-
       <div class="flex justify-center mb-4">
         <div class="flex items-center gap-2 max-w-2xl w-full">
           <span class="p-input-icon-left w-full">
             <i class="pi pi-search"></i>
-            <input pInputText type="text" [(ngModel)]="filtroNombre" placeholder="Buscar por nombre" 
-              class="p-inputtext-sm w-full" />
+            <input pInputText type="text" [(ngModel)]="filtroNombre" 
+              placeholder="Buscar por nombre" class="p-inputtext-sm w-full" />
           </span>
         </div>
       </div>
 
-      <p-table [value]="filtrarEspecialidades()" [responsive]="true" [loading]="cargando" 
+      <p-table [value]="filtrarFacultades()" [responsive]="true" [loading]="cargando" 
         [showLoader]="false" [paginator]="true" [showCurrentPageReport]="true" 
-        styleClass="p-datatable-sm" [rows]="4" [scrollable]="true" scrollHeight="flex">
+        styleClass="p-datatable-sm" [rows]="5" [scrollable]="true" scrollHeight="flex">
         
         <ng-template pTemplate="header">
           <tr>
             <th class="border-b-0 p-3 text-sm font-semibold text-center text-[#98a0b4]">#</th>
             <th class="border-b-0 p-3 text-sm font-semibold text-center text-[#98a0b4]">Nombre</th>
+            <th class="border-b-0 p-3 text-sm font-semibold text-center text-[#98a0b4]">Sede</th>
             <th class="border-b-0 p-6 text-sm font-semibold text-center text-[#98a0b4]">Acción</th>
           </tr>
         </ng-template>
 
-        <ng-template pTemplate="body" let-especialidad let-i="rowIndex">
+        <ng-template pTemplate="body" let-facultad let-i="rowIndex">
           <br class="m-2">
           <tr class="w-full bg-white rounded-lg colocar_shadow">
             <td class="p-3 border-collapse border-b-0 text-xs text-center text-black">
               {{ i + 1 }}
             </td>
             <td class="p-3 font-bold border-b-0 text-xs text-center text-black">
-              {{especialidad.nombre}}
+              {{facultad.nombres}}
+            </td>
+            <td class="p-3 font-bold border-b-0 text-xs text-center text-black">
+              {{facultad.sede.nombre}}
             </td>
             <td class="p-3 border-b-0 flex justify-center items-center">
               <button pButton pRipple type="button" icon="pi pi-pencil"
-                (click)="showDialogEdit(especialidad.id)"
+                (click)="showDialogEdit(facultad.id)"
                 class="p-button-rounded p-button-text h-7 text-green-600 hover:bg-gray-200 transition-colors duration-200 icono_verde">
               </button>
               <button pButton pRipple type="button" icon="pi pi-trash"
-                (click)="deleteEspecialidad(especialidad.id)"
+                (click)="deleteFacultad(facultad.id)"
                 class="p-button-rounded p-button-text h-7 text-red-600 hover:bg-red-100 transition-colors duration-200">
               </button>
             </td>
@@ -74,7 +76,6 @@
     </div>
   </div>
 </div>
-
 <p-dialog header="{{titulo}}" [modal]="true" [(visible)]="visible"
   [style]="{width: '90vw', maxWidth: '500px', fontSize: 'clamp(0.8rem, 2vw, 1.2rem)'}" 
   styleClass="custom-dialog">
@@ -87,12 +88,19 @@
 
   <div class="flex flex-col space-y-4">
     <div class="flex-1">
-      <div class="flex flex-column gap-2">
+      <div class="flex flex-column gap-2 mb-4">
         <label for="nombre" class="font-semibold text-blue-500 text-sm sm:text-base">Nombre</label>
         <input pInputText [(ngModel)]="nombreTemp" name="nombre" id="nombre" 
           class="w-full text-sm sm:text-base" autocomplete="off" />
+      </div>
+      <div class="flex flex-column gap-2">
+        <label for="especialidad" class="font-semibold text-blue-500 text-sm sm:text-base">Sede</label>
+        <p-dropdown [options]="sedeOptions" [(ngModel)]="facultad.sede" 
+          optionLabel="nombre" class="w-full" placeholder="Seleccione una sede"
+          [appendTo]="'body'">
+        </p-dropdown>
         <small *ngIf="op === 1" class="text-blue-300 text-xs sm:text-sm">
-          El nombre actual es: {{especialidad.nombre}}
+          La sede actual es: {{sedeOriginal}}
         </small>
       </div>
     </div>
@@ -102,7 +110,8 @@
     <div class="flex flex-col sm:flex-row justify-end gap-2">
       <p-button label="Cancelar" styleClass="p-button-secondary w-full sm:w-auto text-xs sm:text-sm"
         (click)="visible = false" />
-      <p-button [label]="opc" (click)="opcion()" [disabled]="!nombreTemp || nombreTemp.trim() === ''"
+      <p-button [label]="opc" (click)="opcion()" 
+        [disabled]="!nombreTemp || nombreTemp.trim() === '' || !facultad.sede"
         styleClass="w-full sm:w-auto text-xs sm:text-sm" />
     </div>
   </ng-template>
